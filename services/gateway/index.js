@@ -1,8 +1,9 @@
 // The http module contains methods to handle http queries.
-const http = require('http')
-// Let's import our logic.
-const fileQuery = require('./queryManagers/front.js')
-const apiQuery = require('./queryManagers/api.js')
+const http = require('http');
+const httpProxy = require('http-proxy');
+
+// We will need a proxy to send requests to the other services.
+const proxy = httpProxy.createProxyServer();
 
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
@@ -17,10 +18,12 @@ http.createServer(function (request, response) {
     try {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
-            apiQuery.manage(request, response);
-            // If it doesn't start by /api, then it's a request for a file.
+            //TODO: Add middlewares and call microservices depending on the request.
+
+        // If it doesn't start by /api, then it's a request for a file.
         } else {
-            fileQuery.manage(request, response);
+            console.log("Request for a file received, transferring to the file service")
+            proxy.web(request, response, {target: "http://127.0.0.1:8001"});
         }
     } catch(error) {
         console.log(`error while processing ${request.url}: ${error}`)
